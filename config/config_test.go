@@ -6,6 +6,22 @@ import (
 	"testing"
 )
 
+func TestLoadFromFileMissingStatus(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, ".kbn.yml")
+	content := []byte(`vault: "/path/to/vault"
+path: "notes"
+fields:
+  id: "ticket_id"
+`)
+	os.WriteFile(cfgPath, content, 0644)
+
+	_, err := LoadFromFile(cfgPath)
+	if err == nil {
+		t.Error("expected error for missing fields.status")
+	}
+}
+
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, ".kbn.yml")

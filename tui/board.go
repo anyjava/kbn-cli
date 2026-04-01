@@ -51,12 +51,18 @@ func (b *BoardView) MoveRight() {
 }
 
 func (b *BoardView) MoveUp() {
+	if len(b.Board.Columns) == 0 {
+		return
+	}
 	if b.RowCursor > 0 {
 		b.RowCursor--
 	}
 }
 
 func (b *BoardView) MoveDown() {
+	if len(b.Board.Columns) == 0 {
+		return
+	}
 	col := b.Board.Columns[b.ColCursor]
 	if b.RowCursor < len(col.Cards)-1 {
 		b.RowCursor++
@@ -129,11 +135,12 @@ func (b *BoardView) Render() string {
 }
 
 func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
+	runes := []rune(s)
+	if len(runes) <= maxLen {
 		return s
 	}
-	if maxLen <= 3 {
-		return s[:maxLen]
+	if maxLen <= 1 {
+		return string(runes[:maxLen])
 	}
-	return s[:maxLen-1] + "…"
+	return string(runes[:maxLen-1]) + "…"
 }

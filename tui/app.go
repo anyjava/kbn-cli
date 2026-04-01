@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/anyjava/kbn/model"
 	tea "github.com/charmbracelet/bubbletea"
@@ -53,6 +54,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if a.showHelp {
+		a.showHelp = false
+		return a, nil
+	}
 	switch msg.String() {
 	case "q", "ctrl+c":
 		return a, tea.Quit
@@ -113,7 +118,7 @@ func (a App) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 
 	default:
-		if len(msg.String()) == 1 {
+		if utf8.RuneCountInString(msg.String()) == 1 {
 			a.searchText += msg.String()
 		}
 	}

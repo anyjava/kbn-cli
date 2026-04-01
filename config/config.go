@@ -43,6 +43,10 @@ func LoadFromFile(path string) (*Config, error) {
 		cfg.Glob = "*.md"
 	}
 
+	if cfg.Fields.Status == "" {
+		return nil, fmt.Errorf("fields.status is required in config")
+	}
+
 	return cfg, nil
 }
 
