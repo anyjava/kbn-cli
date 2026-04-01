@@ -1,0 +1,11 @@
+vault: "/Users/anyjava/Library/Mobile Documents/iCloud~md~obsidian/Documents/sht21c@gmail.com"
+path: "개발일/Underlog"
+glob: "*.md"
+fields:
+  id: "ticket_id"
+  title: "title"
+  status: "status"
+  priority: "priority"
+  type: "type"
+hidden_statuses:
+  - "Closed"
