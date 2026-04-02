@@ -7,15 +7,19 @@ var (
 	HeaderStyle = lipgloss.NewStyle().
 		Bold(true).
 		Padding(0, 1).
+		MarginBottom(1).
 		Foreground(lipgloss.Color("15")).
-		Background(lipgloss.Color("62"))
+		Background(lipgloss.Color("62")).
+		Align(lipgloss.Center)
 
 	// Active column header
 	ActiveHeaderStyle = lipgloss.NewStyle().
 		Bold(true).
 		Padding(0, 1).
+		MarginBottom(1).
 		Foreground(lipgloss.Color("15")).
-		Background(lipgloss.Color("33"))
+		Background(lipgloss.Color("33")).
+		Align(lipgloss.Center)
 
 	// Card box (normal)
 	CardStyle = lipgloss.NewStyle().
