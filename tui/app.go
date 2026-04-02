@@ -8,10 +8,15 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/anyjava/kbn/config"
 	"github.com/anyjava/kbn/model"
+	"github.com/anyjava/kbn/parser"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/fsnotify/fsnotify"
 )
+
+type reloadMsg struct{}
 
 type App struct {
 	board         BoardView
@@ -22,25 +27,53 @@ type App struct {
 	fullBoard     model.Board // unfiltered board for search reset
 	columnOrder   []string
 	previewLayout string // "right" or "bottom"
+	cfg           *config.Config
+	showAll       bool
 	width         int
 	height        int
 }
 
-func NewApp(board model.Board, columnOrder []string, previewLayout string) App {
+func NewApp(board model.Board, cfg *config.Config, showAll bool) App {
 	app := App{
 		board: BoardView{
 			Board: board,
 		},
 		preview:       PreviewPanel{Visible: true},
 		fullBoard:     board,
-		columnOrder:   columnOrder,
-		previewLayout: previewLayout,
+		columnOrder:   cfg.ColumnOrder,
+		previewLayout: cfg.PreviewLayout,
+		cfg:           cfg,
+		showAll:       showAll,
 	}
 	return app
 }
 
 func (a App) Init() tea.Cmd {
-	return nil
+	return a.watchFiles()
+}
+
+func (a App) watchFiles() tea.Cmd {
+	return func() tea.Msg {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			return nil
+		}
+		dir := a.cfg.FullPath()
+		watcher.Add(dir)
+
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) {
+					if strings.HasSuffix(event.Name, ".md") {
+						return reloadMsg{}
+					}
+				}
+			case <-watcher.Errors:
+				return nil
+			}
+		}
+	}
 }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -51,6 +84,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.relayout()
 		a.updatePreview()
 		return a, nil
+
+	case reloadMsg:
+		a.reload()
+		return a, a.watchFiles()
 
 	case tea.MouseMsg:
 		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
@@ -118,6 +155,9 @@ func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "/":
 		a.searching = true
 		a.searchText = ""
+
+	case "r":
+		a.reload()
 
 	case "?":
 		a.showHelp = !a.showHelp
@@ -229,6 +269,19 @@ func (a *App) relayout() {
 	}
 }
 
+func (a *App) reload() {
+	cards, _ := parser.ParseCards(a.cfg.FullPath(), a.cfg.Glob, a.cfg.Fields)
+	if !a.showAll {
+		cards = model.FilterCards(cards, a.cfg.HiddenStatuses)
+	}
+	board := model.NewBoard(cards, a.cfg.ColumnOrder)
+	a.fullBoard = board
+	a.board.Board = board
+	a.board.clampRow()
+	a.preview.filePath = "" // force preview reload
+	a.updatePreview()
+}
+
 func (a *App) updatePreview() {
 	if card := a.board.ActiveCard(); card != nil {
 		a.preview.LoadFile(card.FilePath)
@@ -276,7 +329,7 @@ func (a App) renderHelpBar() string {
 	if a.searching {
 		return SearchStyle.Render(fmt.Sprintf("/ %s█", a.searchText))
 	}
-	return HelpStyle.Render("  ←→/hl columns  ↑↓/jk cards  J/K scroll preview  Enter editor  p preview  / search  ? help  q quit")
+	return HelpStyle.Render("  ←→/hl columns  ↑↓/jk cards  J/K scroll  Enter editor  p preview  r reload  / search  ? help  q quit")
 }
 
 func (a App) renderHelp() string {
@@ -289,6 +342,7 @@ func (a App) renderHelp() string {
   Mouse wheel   Scroll preview panel
   Enter         Open in $EDITOR
   p             Toggle preview panel
+  r             Reload files
   /             Search cards
   ?             Toggle this help
   q  Ctrl+C     Quit
