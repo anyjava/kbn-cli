@@ -9,3 +9,8 @@ fields:
   type: "type"
 hidden_statuses:
   - "Closed"
+column_order:
+  - "TODO"
+  - "Planned"
+  - "In Progress"
+  - "Done"

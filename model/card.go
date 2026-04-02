@@ -39,7 +39,7 @@ func FilterCards(cards []Card, hiddenStatuses []string) []Card {
 	return result
 }
 
-func NewBoard(cards []Card) Board {
+func NewBoard(cards []Card, columnOrder []string) Board {
 	groups := make(map[string][]Card)
 	for _, c := range cards {
 		groups[c.Status] = append(groups[c.Status], c)
@@ -50,12 +50,33 @@ func NewBoard(cards []Card) Board {
 		columns = append(columns, Column{Name: name, Cards: cards})
 	}
 
-	sort.Slice(columns, func(i, j int) bool {
-		if len(columns[i].Cards) != len(columns[j].Cards) {
-			return len(columns[i].Cards) > len(columns[j].Cards)
+	if len(columnOrder) > 0 {
+		orderIndex := make(map[string]int, len(columnOrder))
+		for i, name := range columnOrder {
+			orderIndex[name] = i
 		}
-		return columns[i].Name < columns[j].Name
-	})
+		sort.Slice(columns, func(i, j int) bool {
+			oi, okI := orderIndex[columns[i].Name]
+			oj, okJ := orderIndex[columns[j].Name]
+			if okI && okJ {
+				return oi < oj
+			}
+			if okI {
+				return true
+			}
+			if okJ {
+				return false
+			}
+			return columns[i].Name < columns[j].Name
+		})
+	} else {
+		sort.Slice(columns, func(i, j int) bool {
+			if len(columns[i].Cards) != len(columns[j].Cards) {
+				return len(columns[i].Cards) > len(columns[j].Cards)
+			}
+			return columns[i].Name < columns[j].Name
+		})
+	}
 
 	return Board{Columns: columns}
 }

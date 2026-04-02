@@ -14,23 +14,25 @@ import (
 )
 
 type App struct {
-	board      BoardView
-	preview    PreviewPanel
-	showHelp   bool
-	searching  bool
-	searchText string
-	fullBoard  model.Board // unfiltered board for search reset
-	width      int
-	height     int
+	board       BoardView
+	preview     PreviewPanel
+	showHelp    bool
+	searching   bool
+	searchText  string
+	fullBoard   model.Board // unfiltered board for search reset
+	columnOrder []string
+	width       int
+	height      int
 }
 
-func NewApp(board model.Board) App {
+func NewApp(board model.Board, columnOrder []string) App {
 	app := App{
 		board: BoardView{
 			Board: board,
 		},
-		preview:   PreviewPanel{Visible: true},
-		fullBoard: board,
+		preview:     PreviewPanel{Visible: true},
+		fullBoard:   board,
+		columnOrder: columnOrder,
 	}
 	return app
 }
@@ -144,7 +146,7 @@ func (a *App) applySearch() {
 			}
 		}
 	}
-	a.board.Board = model.NewBoard(filtered)
+	a.board.Board = model.NewBoard(filtered, a.columnOrder)
 	a.board.ColCursor = 0
 	a.board.RowCursor = 0
 }

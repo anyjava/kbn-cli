@@ -21,7 +21,8 @@ type Config struct {
 	Path           string   `yaml:"path"`
 	Glob           string   `yaml:"glob"`
 	Fields         Fields   `yaml:"fields"`
-	HiddenStatuses []string `yaml:"hidden_statuses"`
+	HiddenStatuses []string  `yaml:"hidden_statuses"`
+	ColumnOrder    []string  `yaml:"column_order"`
 }
 
 func (c *Config) FullPath() string {

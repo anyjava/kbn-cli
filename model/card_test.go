@@ -14,7 +14,7 @@ func TestNewBoard(t *testing.T) {
 		{ID: "5", Title: "Task E", Status: "In Progress"},
 	}
 
-	board := NewBoard(cards)
+	board := NewBoard(cards, nil)
 
 	if len(board.Columns) != 2 {
 		t.Fatalf("columns = %d, want 2", len(board.Columns))
@@ -34,8 +34,55 @@ func TestNewBoard(t *testing.T) {
 	}
 }
 
+func TestNewBoardWithColumnOrder(t *testing.T) {
+	cards := []Card{
+		{ID: "1", Status: "Done"},
+		{ID: "2", Status: "In Progress"},
+		{ID: "3", Status: "TODO"},
+		{ID: "4", Status: "Done"},
+		{ID: "5", Status: "Planned"},
+	}
+
+	order := []string{"TODO", "Planned", "In Progress", "Done"}
+	board := NewBoard(cards, order)
+
+	if len(board.Columns) != 4 {
+		t.Fatalf("columns = %d, want 4", len(board.Columns))
+	}
+	for i, want := range order {
+		if board.Columns[i].Name != want {
+			t.Errorf("column[%d] = %q, want %q", i, board.Columns[i].Name, want)
+		}
+	}
+}
+
+func TestNewBoardColumnOrderWithUnlisted(t *testing.T) {
+	cards := []Card{
+		{ID: "1", Status: "Done"},
+		{ID: "2", Status: "Unknown"},
+		{ID: "3", Status: "TODO"},
+	}
+
+	order := []string{"TODO", "Done"}
+	board := NewBoard(cards, order)
+
+	if len(board.Columns) != 3 {
+		t.Fatalf("columns = %d, want 3", len(board.Columns))
+	}
+	// TODO first, Done second, Unknown at the end
+	if board.Columns[0].Name != "TODO" {
+		t.Errorf("column[0] = %q, want %q", board.Columns[0].Name, "TODO")
+	}
+	if board.Columns[1].Name != "Done" {
+		t.Errorf("column[1] = %q, want %q", board.Columns[1].Name, "Done")
+	}
+	if board.Columns[2].Name != "Unknown" {
+		t.Errorf("column[2] = %q, want %q", board.Columns[2].Name, "Unknown")
+	}
+}
+
 func TestNewBoardEmptyCards(t *testing.T) {
-	board := NewBoard([]Card{})
+	board := NewBoard([]Card{}, nil)
 	if len(board.Columns) != 0 {
 		t.Errorf("columns = %d, want 0", len(board.Columns))
 	}

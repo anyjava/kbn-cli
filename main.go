@@ -42,8 +42,8 @@ func main() {
 				cards = model.FilterCards(cards, cfg.HiddenStatuses)
 			}
 
-			board := model.NewBoard(cards)
-			app := tui.NewApp(board)
+			board := model.NewBoard(cards, cfg.ColumnOrder)
+			app := tui.NewApp(board, cfg.ColumnOrder)
 
 			p := tea.NewProgram(app, tea.WithAltScreen())
 			if _, err := p.Run(); err != nil {
