@@ -26,6 +26,10 @@ type App struct {
 
 func NewApp(board model.Board) App {
 	app := App{
+		board: BoardView{
+			Board: board,
+		},
+		preview:   PreviewPanel{Visible: true},
 		fullBoard: board,
 	}
 	return app
