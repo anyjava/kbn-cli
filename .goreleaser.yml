@@ -1,0 +1,35 @@
+version: 2
+
+project_name: kbn
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - format: tar.gz
+
+brews:
+  - repository:
+      owner: anyjava
+      name: homebrew-tap
+    homepage: https://github.com/anyjava/kbn
+    description: "Obsidian vault kanban board TUI viewer"
+    license: "MIT"
+    install: |
+      bin.install "kbn"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"

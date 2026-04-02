@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var version = "dev"
+
 func main() {
 	var (
 		showAll      bool
@@ -22,8 +24,9 @@ func main() {
 	)
 
 	rootCmd := &cobra.Command{
-		Use:   "kbn",
-		Short: "Obsidian vault kanban board TUI viewer",
+		Use:     "kbn",
+		Short:   "Obsidian vault kanban board TUI viewer",
+		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load(configPath)
 			if err != nil {
