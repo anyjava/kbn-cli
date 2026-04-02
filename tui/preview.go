@@ -16,6 +16,8 @@ type PreviewPanel struct {
 	filePath   string
 	scrollOff  int
 	totalLines int
+	renderer   *glamour.TermRenderer
+	rendererW  int // width used to create renderer
 }
 
 func NewPreviewPanel(width, height int) PreviewPanel {
@@ -50,16 +52,20 @@ func (p *PreviewPanel) LoadFile(path string) {
 		}
 	}
 
-	renderer, err := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-		glamour.WithWordWrap(p.Width-4),
-	)
-	if err != nil {
-		p.Content = content
-		return
+	if p.renderer == nil || p.rendererW != p.Width {
+		r, err := glamour.NewTermRenderer(
+			glamour.WithAutoStyle(),
+			glamour.WithWordWrap(p.Width-4),
+		)
+		if err != nil {
+			p.Content = content
+			return
+		}
+		p.renderer = r
+		p.rendererW = p.Width
 	}
 
-	rendered, err := renderer.Render(content)
+	rendered, err := p.renderer.Render(content)
 	if err != nil {
 		p.Content = content
 		return
