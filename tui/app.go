@@ -54,6 +54,14 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
 			return a.handleMouseClick(msg)
 		}
+		if msg.Button == tea.MouseButtonWheelUp {
+			a.preview.ScrollUp()
+			return a, nil
+		}
+		if msg.Button == tea.MouseButtonWheelDown {
+			a.preview.ScrollDown()
+			return a, nil
+		}
 
 	case tea.KeyMsg:
 		if a.searching {
@@ -88,6 +96,12 @@ func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "down", "j":
 		a.board.MoveDown()
 		a.updatePreview()
+
+	case "J":
+		a.preview.ScrollDown()
+
+	case "K":
+		a.preview.ScrollUp()
 
 	case "enter":
 		if card := a.board.ActiveCard(); card != nil {
@@ -229,7 +243,7 @@ func (a App) renderHelpBar() string {
 	if a.searching {
 		return SearchStyle.Render(fmt.Sprintf("/ %s█", a.searchText))
 	}
-	return HelpStyle.Render("  ←→/hl columns  ↑↓/jk cards  Enter editor  p preview  / search  ? help  q quit")
+	return HelpStyle.Render("  ←→/hl columns  ↑↓/jk cards  J/K scroll preview  Enter editor  p preview  / search  ? help  q quit")
 }
 
 func (a App) renderHelp() string {
@@ -238,6 +252,8 @@ func (a App) renderHelp() string {
 
   ←/→  h/l     Move between columns
   ↑/↓  j/k     Move between cards
+  J/K           Scroll preview panel
+  Mouse wheel   Scroll preview panel
   Enter         Open in $EDITOR
   p             Toggle preview panel
   /             Search cards

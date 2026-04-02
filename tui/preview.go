@@ -9,11 +9,13 @@ import (
 )
 
 type PreviewPanel struct {
-	Content  string
-	Width    int
-	Height   int
-	Visible  bool
-	filePath string
+	Content    string
+	Width      int
+	Height     int
+	Visible    bool
+	filePath   string
+	scrollOff  int
+	totalLines int
 }
 
 func NewPreviewPanel(width, height int) PreviewPanel {
@@ -64,6 +66,25 @@ func (p *PreviewPanel) LoadFile(path string) {
 	}
 
 	p.Content = rendered
+	p.scrollOff = 0
+	p.totalLines = len(strings.Split(rendered, "\n"))
+}
+
+func (p *PreviewPanel) ScrollDown() {
+	viewable := p.Height - 2
+	maxOff := p.totalLines - viewable
+	if maxOff < 0 {
+		maxOff = 0
+	}
+	if p.scrollOff < maxOff {
+		p.scrollOff++
+	}
+}
+
+func (p *PreviewPanel) ScrollUp() {
+	if p.scrollOff > 0 {
+		p.scrollOff--
+	}
 }
 
 func (p *PreviewPanel) Render() string {
@@ -76,10 +97,18 @@ func (p *PreviewPanel) Render() string {
 		content = "No card selected"
 	}
 
-	// Limit content height
 	lines := strings.Split(content, "\n")
-	if len(lines) > p.Height-2 {
-		lines = lines[:p.Height-2]
+	viewable := p.Height - 2
+
+	// Apply scroll offset
+	start := p.scrollOff
+	if start > len(lines) {
+		start = len(lines)
+	}
+	lines = lines[start:]
+
+	if len(lines) > viewable {
+		lines = lines[:viewable]
 	}
 	content = strings.Join(lines, "\n")
 
