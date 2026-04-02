@@ -1,4 +1,4 @@
-# kbn
+# kbn-cli
 
 A terminal kanban board viewer for Obsidian vaults.
 
