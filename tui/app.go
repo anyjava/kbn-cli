@@ -198,17 +198,19 @@ func (a *App) applySearch() {
 
 func (a *App) relayout() {
 	helpBarHeight := 1
+	borderHeight := 2 // top + bottom border lines per bordered component
 
 	if a.previewLayout == "bottom" {
 		a.board.Width = a.width
 		a.preview.Width = a.width
 		if a.preview.Visible {
-			previewHeight := (a.height - helpBarHeight) * 35 / 100
-			boardHeight := a.height - helpBarHeight - previewHeight
-			a.board.Height = boardHeight
-			a.preview.Height = previewHeight
+			available := a.height - helpBarHeight - borderHeight*2 // board border + preview border
+			previewContent := available * 35 / 100
+			boardContent := available - previewContent
+			a.board.Height = boardContent
+			a.preview.Height = previewContent
 		} else {
-			a.board.Height = a.height - helpBarHeight
+			a.board.Height = a.height - helpBarHeight - borderHeight
 			a.preview.Height = 0
 		}
 	} else {
@@ -218,7 +220,7 @@ func (a *App) relayout() {
 			previewWidth = a.width * 35 / 100
 		}
 		boardWidth := a.width - previewWidth
-		boardHeight := a.height - helpBarHeight
+		boardHeight := a.height - helpBarHeight - borderHeight
 
 		a.board.Width = boardWidth
 		a.board.Height = boardHeight
