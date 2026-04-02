@@ -131,7 +131,14 @@ func (a App) handleMouseClick(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		return a, nil
 	}
 	col := msg.X / colWidth
-	row := msg.Y - 2 // top border (1) + header (1)
+	// Each card is 5 lines (3 content + 2 border), header area is 2 lines (border + header)
+	cardHeight := 5
+	headerArea := 2
+	y := msg.Y - headerArea
+	if y < 0 {
+		return a, nil
+	}
+	row := y / cardHeight
 	if a.board.MoveTo(col, row) {
 		a.updatePreview()
 	}

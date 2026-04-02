@@ -17,15 +17,48 @@ var (
 		Foreground(lipgloss.Color("15")).
 		Background(lipgloss.Color("33"))
 
-	// Card (normal)
+	// Card box (normal)
 	CardStyle = lipgloss.NewStyle().
-		Padding(0, 1)
-
-	// Card (selected)
-	SelectedCardStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("240")).
 		Padding(0, 1).
-		Bold(true).
-		Foreground(lipgloss.Color("33"))
+		MarginBottom(0)
+
+	// Card box (selected)
+	SelectedCardStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("33")).
+		Padding(0, 1).
+		MarginBottom(0)
+
+	// Card ID label
+	CardIDStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("33")).
+		Bold(true)
+
+	// Card title
+	CardTitleStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15"))
+
+	// Priority badge
+	PriorityHighStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("1")).
+		Bold(true)
+
+	PriorityMediumStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("3"))
+
+	PriorityLowStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8"))
+
+	// Type badge
+	TypeStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("5"))
+
+	// Card cursor indicator
+	CursorStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("33")).
+		Bold(true)
 
 	// Column border
 	ColumnStyle = lipgloss.NewStyle().

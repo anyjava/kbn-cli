@@ -131,20 +131,25 @@ func (b *BoardView) Render() string {
 
 		// Cards
 		var cardLines []string
-		maxCards := b.Height - 4 // header + border
+		cardWidth := innerWidth
+		cardInner := cardWidth - 4 // card border + padding
+		if cardInner < 8 {
+			cardInner = 8
+		}
+		cardHeight := 3 // lines per card: id, title, badges
+		usedHeight := 2 // header + gap
+		maxCards := (b.Height - usedHeight) / (cardHeight + 2) // +2 for card border
+		if maxCards < 1 {
+			maxCards = 1
+		}
 		for j, card := range col.Cards {
 			if j >= maxCards {
 				remaining := len(col.Cards) - maxCards
 				cardLines = append(cardLines, HelpStyle.Render(fmt.Sprintf("  +%d more", remaining)))
 				break
 			}
-			label := truncate(fmt.Sprintf("%s %s", card.ID, card.Title), innerWidth-2)
-			if i == b.ColCursor && j == b.RowCursor {
-				label = SelectedCardStyle.Render("> " + label)
-			} else {
-				label = CardStyle.Render("  " + label)
-			}
-			cardLines = append(cardLines, label)
+			rendered := renderCard(card, cardWidth, cardInner, i == b.ColCursor && j == b.RowCursor)
+			cardLines = append(cardLines, rendered)
 		}
 
 		body := strings.Join(append([]string{header}, cardLines...), "\n")
@@ -159,6 +164,41 @@ func (b *BoardView) Render() string {
 	}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, columns...)
+}
+
+func renderCard(card model.Card, width, innerWidth int, selected bool) string {
+	// Line 1: ID
+	idLine := CardIDStyle.Render(truncate(card.ID, innerWidth))
+
+	// Line 2: Title
+	titleLine := CardTitleStyle.Render(truncate(card.Title, innerWidth))
+
+	// Line 3: badges (type + priority)
+	var badges []string
+	if card.Type != "" {
+		badges = append(badges, TypeStyle.Render(card.Type))
+	}
+	if card.Priority != "" {
+		var pStyle lipgloss.Style
+		switch card.Priority {
+		case "High":
+			pStyle = PriorityHighStyle
+		case "Medium":
+			pStyle = PriorityMediumStyle
+		default:
+			pStyle = PriorityLowStyle
+		}
+		badges = append(badges, pStyle.Render(card.Priority))
+	}
+	badgeLine := strings.Join(badges, " ")
+
+	content := lipgloss.JoinVertical(lipgloss.Left, idLine, titleLine, badgeLine)
+
+	style := CardStyle
+	if selected {
+		style = SelectedCardStyle
+	}
+	return style.Width(width).Render(content)
 }
 
 func truncate(s string, maxLen int) string {
