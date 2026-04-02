@@ -50,6 +50,11 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.updatePreview()
 		return a, nil
 
+	case tea.MouseMsg:
+		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
+			return a.handleMouseClick(msg)
+		}
+
 	case tea.KeyMsg:
 		if a.searching {
 			return a.handleSearchKey(msg)
@@ -99,6 +104,22 @@ func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "?":
 		a.showHelp = !a.showHelp
+	}
+	return a, nil
+}
+
+func (a App) handleMouseClick(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
+	if a.showHelp || a.searching {
+		return a, nil
+	}
+	colWidth := a.board.ColWidth()
+	if colWidth == 0 {
+		return a, nil
+	}
+	col := msg.X / colWidth
+	row := msg.Y - 2 // top border (1) + header (1)
+	if a.board.MoveTo(col, row) {
+		a.updatePreview()
 	}
 	return a, nil
 }

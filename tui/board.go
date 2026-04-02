@@ -69,6 +69,33 @@ func (b *BoardView) MoveDown() {
 	}
 }
 
+func (b *BoardView) MoveTo(col, row int) bool {
+	if len(b.Board.Columns) == 0 {
+		return false
+	}
+	if col < 0 || col >= len(b.Board.Columns) {
+		return false
+	}
+	cards := b.Board.Columns[col].Cards
+	if row < 0 || row >= len(cards) {
+		return false
+	}
+	b.ColCursor = col
+	b.RowCursor = row
+	return true
+}
+
+func (b *BoardView) ColWidth() int {
+	if len(b.Board.Columns) == 0 {
+		return 0
+	}
+	w := b.Width / len(b.Board.Columns)
+	if w < 15 {
+		w = 15
+	}
+	return w
+}
+
 func (b *BoardView) clampRow() {
 	col := b.Board.Columns[b.ColCursor]
 	if b.RowCursor >= len(col.Cards) {
