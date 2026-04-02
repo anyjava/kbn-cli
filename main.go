@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/anyjava/kbn/cmd"
 	"github.com/anyjava/kbn/config"
 	"github.com/anyjava/kbn/model"
 	"github.com/anyjava/kbn/parser"
@@ -56,6 +57,8 @@ func main() {
 	rootCmd.Flags().BoolVar(&showAll, "all", false, "Show all cards including hidden statuses")
 	rootCmd.Flags().StringVar(&configPath, "config", "", "Path to config file")
 	rootCmd.Flags().StringVar(&pathOverride, "path", "", "Override vault path")
+
+	rootCmd.AddCommand(cmd.NewInitCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
