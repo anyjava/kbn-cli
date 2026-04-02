@@ -55,6 +55,10 @@ var (
 	TypeStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("5"))
 
+	// Status badge
+	StatusStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("2"))
+
 	// Card cursor indicator
 	CursorStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("33")).

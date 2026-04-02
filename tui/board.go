@@ -173,8 +173,11 @@ func renderCard(card model.Card, width, innerWidth int, selected bool) string {
 	// Line 2: Title
 	titleLine := CardTitleStyle.Render(truncate(card.Title, innerWidth))
 
-	// Line 3: badges (type + priority)
+	// Line 3: badges (status + type + priority)
 	var badges []string
+	if card.Status != "" {
+		badges = append(badges, StatusStyle.Render(card.Status))
+	}
 	if card.Type != "" {
 		badges = append(badges, TypeStyle.Render(card.Type))
 	}
