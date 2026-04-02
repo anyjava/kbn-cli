@@ -8,8 +8,8 @@ var (
 		Bold(true).
 		Padding(0, 1).
 		MarginBottom(1).
-		Foreground(lipgloss.Color("15")).
-		Background(lipgloss.Color("62")).
+		Foreground(lipgloss.Color("#000000")).
+		Background(lipgloss.Color("#888888")).
 		Align(lipgloss.Center)
 
 	// Active column header
@@ -17,8 +17,8 @@ var (
 		Bold(true).
 		Padding(0, 1).
 		MarginBottom(1).
-		Foreground(lipgloss.Color("15")).
-		Background(lipgloss.Color("33")).
+		Foreground(lipgloss.Color("#000000")).
+		Background(lipgloss.Color("#61AFEF")).
 		Align(lipgloss.Center)
 
 	// Card box (normal)
