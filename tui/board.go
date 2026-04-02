@@ -136,9 +136,10 @@ func (b *BoardView) Render() string {
 		if cardInner < 8 {
 			cardInner = 8
 		}
-		cardHeight := 3 // lines per card: id, title, badges
-		usedHeight := 2 // header + gap
-		maxCards := (b.Height - usedHeight) / (cardHeight + 2) // +2 for card border
+		cardHeight := 3 // lines per card: id, title, badges (fixed via Height(3))
+		cardTotal := cardHeight + 2 // +2 for card border
+		usedHeight := 3 // header(1) + margin(1) + potential "+more" line(1)
+		maxCards := (b.Height - usedHeight) / cardTotal
 		if maxCards < 1 {
 			maxCards = 1
 		}
@@ -198,7 +199,7 @@ func renderCard(card model.Card, width, innerWidth int, selected bool) string {
 	if selected {
 		style = SelectedCardStyle
 	}
-	return style.Width(width).Render(content)
+	return style.Width(width).Height(3).Render(content)
 }
 
 func truncate(s string, maxLen int) string {
