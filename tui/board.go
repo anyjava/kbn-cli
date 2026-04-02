@@ -123,13 +123,22 @@ func (b *BoardView) adjustScroll() {
 	}
 	maxVis := b.maxVisibleCards()
 	off := b.scrollOffs[b.ColCursor]
+
 	// cursor above visible area
 	if b.RowCursor < off {
 		b.scrollOffs[b.ColCursor] = b.RowCursor
+		off = b.scrollOffs[b.ColCursor]
 	}
+
+	// When scrolled down, ↑ indicator takes 1 card slot
+	visibleSlots := maxVis
+	if off > 0 {
+		visibleSlots--
+	}
+
 	// cursor below visible area
-	if b.RowCursor >= off+maxVis {
-		b.scrollOffs[b.ColCursor] = b.RowCursor - maxVis + 1
+	if b.RowCursor >= off+visibleSlots {
+		b.scrollOffs[b.ColCursor] = b.RowCursor - visibleSlots + 1
 	}
 }
 
