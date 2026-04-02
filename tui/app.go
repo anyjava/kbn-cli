@@ -284,7 +284,7 @@ func (a *App) reload() {
 
 func (a *App) updatePreview() {
 	if card := a.board.ActiveCard(); card != nil {
-		a.preview.LoadFile(card.FilePath)
+		a.preview.LoadCard(card)
 	}
 }
 

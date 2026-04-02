@@ -2,10 +2,13 @@
 package tui
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
+	"github.com/anyjava/kbn/model"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type PreviewPanel struct {
@@ -32,15 +35,22 @@ func (p *PreviewPanel) Toggle() {
 	p.Visible = !p.Visible
 }
 
-func (p *PreviewPanel) LoadFile(path string) {
-	if path == p.filePath {
+func (p *PreviewPanel) LoadCard(card *model.Card) {
+	if card == nil {
 		return
 	}
-	p.filePath = path
+	if card.FilePath == p.filePath {
+		return
+	}
+	p.filePath = card.FilePath
 
-	data, err := os.ReadFile(path)
+	// Build ticket info header
+	header := p.renderCardInfo(card)
+
+	// Read and render markdown body
+	data, err := os.ReadFile(card.FilePath)
 	if err != nil {
-		p.Content = "Error: " + err.Error()
+		p.Content = header + "\nError: " + err.Error()
 		return
 	}
 
@@ -58,7 +68,7 @@ func (p *PreviewPanel) LoadFile(path string) {
 			glamour.WithWordWrap(p.Width-4),
 		)
 		if err != nil {
-			p.Content = content
+			p.Content = header + "\n" + content
 			return
 		}
 		p.renderer = r
@@ -67,13 +77,63 @@ func (p *PreviewPanel) LoadFile(path string) {
 
 	rendered, err := p.renderer.Render(content)
 	if err != nil {
-		p.Content = content
+		p.Content = header + "\n" + content
 		return
 	}
 
-	p.Content = rendered
+	p.Content = header + "\n" + rendered
 	p.scrollOff = 0
-	p.totalLines = len(strings.Split(rendered, "\n"))
+	p.totalLines = len(strings.Split(p.Content, "\n"))
+}
+
+var (
+	infoLabelStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")).
+		Width(10)
+	infoValueStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15")).
+		Bold(true)
+	infoDividerStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240"))
+)
+
+func (p *PreviewPanel) renderCardInfo(card *model.Card) string {
+	var lines []string
+
+	titleLine := CardIDStyle.Render(card.ID) + " " + CardTitleStyle.Render(card.Title)
+	lines = append(lines, titleLine)
+
+	var fields []string
+	if card.Status != "" {
+		fields = append(fields, fmt.Sprintf("%s %s",
+			infoLabelStyle.Render("Status:"),
+			StatusStyle.Render(card.Status)))
+	}
+	if card.Type != "" {
+		fields = append(fields, fmt.Sprintf("%s %s",
+			infoLabelStyle.Render("Type:"),
+			TypeStyle.Render(card.Type)))
+	}
+	if card.Priority != "" {
+		var pStyle lipgloss.Style
+		switch card.Priority {
+		case "High":
+			pStyle = PriorityHighStyle
+		case "Medium":
+			pStyle = PriorityMediumStyle
+		default:
+			pStyle = PriorityLowStyle
+		}
+		fields = append(fields, fmt.Sprintf("%s %s",
+			infoLabelStyle.Render("Priority:"),
+			pStyle.Render(card.Priority)))
+	}
+	lines = append(lines, fields...)
+
+	divider := infoDividerStyle.Render(strings.Repeat("─", p.Width-6))
+	lines = append(lines, divider)
+
+	return strings.Join(lines, "\n")
 }
 
 func (p *PreviewPanel) ScrollDown() {
