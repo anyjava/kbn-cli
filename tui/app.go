@@ -274,7 +274,9 @@ func (a App) renderHelp() string {
 }
 
 // korToEng maps Korean 2벌식 keyboard input to English equivalents.
+// Also handles composed vowels from IME buffering (e.g. ㅗ+ㅣ=ㅚ).
 var korEngMap = map[string]string{
+	// Single jamo
 	"ㅂ": "q", "ㅈ": "w", "ㄷ": "e", "ㄱ": "r", "ㅅ": "t",
 	"ㅛ": "y", "ㅕ": "u", "ㅑ": "i", "ㅐ": "o", "ㅔ": "p",
 	"ㅁ": "a", "ㄴ": "s", "ㅇ": "d", "ㄹ": "f", "ㅎ": "g",
@@ -284,6 +286,15 @@ var korEngMap = map[string]string{
 	// Shift variants
 	"ㅃ": "Q", "ㅉ": "W", "ㄸ": "E", "ㄲ": "R", "ㅆ": "T",
 	"ㅒ": "O", "ㅖ": "P",
+	// Composed vowels (IME combines these before sending)
+	// Map to the LAST key pressed (most recent navigation intent)
+	"ㅚ": "l", // ㅗ+ㅣ = h+l → treat as "l" (right)
+	"ㅘ": "k", // ㅗ+ㅏ = h+k → treat as "k" (up)
+	"ㅙ": "o", // ㅗ+ㅐ = h+o
+	"ㅝ": "j", // ㅜ+ㅓ = n+j → treat as "j" (down)
+	"ㅞ": "p", // ㅜ+ㅔ = n+p → treat as "p" (preview)
+	"ㅟ": "l", // ㅜ+ㅣ = n+l → treat as "l" (right)
+	"ㅢ": "l", // ㅡ+ㅣ = m+l → treat as "l" (right)
 }
 
 func korToEng(key string) string {
