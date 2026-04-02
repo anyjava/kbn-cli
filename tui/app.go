@@ -77,7 +77,8 @@ func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		a.showHelp = false
 		return a, nil
 	}
-	switch msg.String() {
+	key := korToEng(msg.String())
+	switch key {
 	case "q", "ctrl+c":
 		return a, tea.Quit
 
@@ -255,7 +256,7 @@ func (a App) renderHelpBar() string {
 
 func (a App) renderHelp() string {
 	help := `
-  Key Bindings
+  Key Bindings (한글 키보드에서도 동작)
 
   ←/→  h/l     Move between columns
   ↑/↓  j/k     Move between cards
@@ -270,4 +271,24 @@ func (a App) renderHelp() string {
   Press any key to close this help.
 `
 	return help
+}
+
+// korToEng maps Korean 2벌식 keyboard input to English equivalents.
+var korEngMap = map[string]string{
+	"ㅂ": "q", "ㅈ": "w", "ㄷ": "e", "ㄱ": "r", "ㅅ": "t",
+	"ㅛ": "y", "ㅕ": "u", "ㅑ": "i", "ㅐ": "o", "ㅔ": "p",
+	"ㅁ": "a", "ㄴ": "s", "ㅇ": "d", "ㄹ": "f", "ㅎ": "g",
+	"ㅗ": "h", "ㅓ": "j", "ㅏ": "k", "ㅣ": "l",
+	"ㅋ": "z", "ㅌ": "x", "ㅊ": "c", "ㅍ": "v", "ㅠ": "b",
+	"ㅜ": "n", "ㅡ": "m",
+	// Shift variants
+	"ㅃ": "Q", "ㅉ": "W", "ㄸ": "E", "ㄲ": "R", "ㅆ": "T",
+	"ㅒ": "O", "ㅖ": "P",
+}
+
+func korToEng(key string) string {
+	if mapped, ok := korEngMap[key]; ok {
+		return mapped
+	}
+	return key
 }
