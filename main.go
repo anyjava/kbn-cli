@@ -44,7 +44,7 @@ func main() {
 			}
 
 			board := model.NewBoard(cards, cfg.ColumnOrder)
-			app := tui.NewApp(board, cfg.ColumnOrder)
+			app := tui.NewApp(board, cfg.ColumnOrder, cfg.PreviewLayout)
 
 			p := tea.NewProgram(app, tea.WithAltScreen(), tea.WithMouseCellMotion())
 			if _, err := p.Run(); err != nil {

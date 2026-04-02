@@ -23,6 +23,7 @@ type Config struct {
 	Fields         Fields   `yaml:"fields"`
 	HiddenStatuses []string  `yaml:"hidden_statuses"`
 	ColumnOrder    []string  `yaml:"column_order"`
+	PreviewLayout  string   `yaml:"preview_layout"` // "right" (default) or "bottom"
 }
 
 func (c *Config) FullPath() string {
@@ -46,6 +47,13 @@ func LoadFromFile(path string) (*Config, error) {
 
 	if cfg.Fields.Status == "" {
 		return nil, fmt.Errorf("fields.status is required in config")
+	}
+
+	if cfg.PreviewLayout == "" {
+		cfg.PreviewLayout = "right"
+	}
+	if cfg.PreviewLayout != "right" && cfg.PreviewLayout != "bottom" {
+		return nil, fmt.Errorf("preview_layout must be \"right\" or \"bottom\", got %q", cfg.PreviewLayout)
 	}
 
 	return cfg, nil

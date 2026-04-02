@@ -14,25 +14,27 @@ import (
 )
 
 type App struct {
-	board       BoardView
-	preview     PreviewPanel
-	showHelp    bool
-	searching   bool
-	searchText  string
-	fullBoard   model.Board // unfiltered board for search reset
-	columnOrder []string
-	width       int
-	height      int
+	board         BoardView
+	preview       PreviewPanel
+	showHelp      bool
+	searching     bool
+	searchText    string
+	fullBoard     model.Board // unfiltered board for search reset
+	columnOrder   []string
+	previewLayout string // "right" or "bottom"
+	width         int
+	height        int
 }
 
-func NewApp(board model.Board, columnOrder []string) App {
+func NewApp(board model.Board, columnOrder []string, previewLayout string) App {
 	app := App{
 		board: BoardView{
 			Board: board,
 		},
-		preview:     PreviewPanel{Visible: true},
-		fullBoard:   board,
-		columnOrder: columnOrder,
+		preview:       PreviewPanel{Visible: true},
+		fullBoard:     board,
+		columnOrder:   columnOrder,
+		previewLayout: previewLayout,
 	}
 	return app
 }
@@ -195,17 +197,34 @@ func (a *App) applySearch() {
 }
 
 func (a *App) relayout() {
-	previewWidth := 0
-	if a.preview.Visible {
-		previewWidth = a.width * 35 / 100
-	}
-	boardWidth := a.width - previewWidth
-	boardHeight := a.height - 2 // help bar
+	helpBarHeight := 1
 
-	a.board.Width = boardWidth
-	a.board.Height = boardHeight
-	a.preview.Width = previewWidth
-	a.preview.Height = boardHeight
+	if a.previewLayout == "bottom" {
+		a.board.Width = a.width
+		a.preview.Width = a.width
+		if a.preview.Visible {
+			previewHeight := (a.height - helpBarHeight) * 35 / 100
+			boardHeight := a.height - helpBarHeight - previewHeight
+			a.board.Height = boardHeight
+			a.preview.Height = previewHeight
+		} else {
+			a.board.Height = a.height - helpBarHeight
+			a.preview.Height = 0
+		}
+	} else {
+		// "right" layout (default)
+		previewWidth := 0
+		if a.preview.Visible {
+			previewWidth = a.width * 35 / 100
+		}
+		boardWidth := a.width - previewWidth
+		boardHeight := a.height - helpBarHeight
+
+		a.board.Width = boardWidth
+		a.board.Height = boardHeight
+		a.preview.Width = previewWidth
+		a.preview.Height = boardHeight
+	}
 }
 
 func (a *App) updatePreview() {
@@ -238,7 +257,11 @@ func (a App) View() string {
 	var content string
 	if a.preview.Visible {
 		previewStr := a.preview.Render()
-		content = lipgloss.JoinHorizontal(lipgloss.Top, boardStr, previewStr)
+		if a.previewLayout == "bottom" {
+			content = lipgloss.JoinVertical(lipgloss.Left, boardStr, previewStr)
+		} else {
+			content = lipgloss.JoinHorizontal(lipgloss.Top, boardStr, previewStr)
+		}
 	} else {
 		content = boardStr
 	}

@@ -9,6 +9,7 @@ fields:
   type: "type"
 hidden_statuses:
   - "Closed"
+preview_layout: "bottom"  # "right" or "bottom"
 column_order:
   - "TODO"
   - "Planned"
