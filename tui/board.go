@@ -10,11 +10,12 @@ import (
 )
 
 type BoardView struct {
-	Board     model.Board
-	ColCursor int // active column index
-	RowCursor int // active card index within column
-	Width     int
-	Height    int
+	Board      model.Board
+	ColCursor  int // active column index
+	RowCursor  int // active card index within column
+	scrollOffs []int // per-column scroll offset
+	Width      int
+	Height     int
 }
 
 func NewBoardView(board model.Board, width, height int) BoardView {
@@ -56,6 +57,7 @@ func (b *BoardView) MoveUp() {
 	}
 	if b.RowCursor > 0 {
 		b.RowCursor--
+		b.adjustScroll()
 	}
 }
 
@@ -66,6 +68,7 @@ func (b *BoardView) MoveDown() {
 	col := b.Board.Columns[b.ColCursor]
 	if b.RowCursor < len(col.Cards)-1 {
 		b.RowCursor++
+		b.adjustScroll()
 	}
 }
 
@@ -96,11 +99,46 @@ func (b *BoardView) ColWidth() int {
 	return w
 }
 
+func (b *BoardView) maxVisibleCards() int {
+	cardTotal := 5 // 3 content + 2 border
+	usedHeight := 3 // header(1) + margin(1) + potential "+more"(1)
+	m := (b.Height - usedHeight) / cardTotal
+	if m < 1 {
+		m = 1
+	}
+	return m
+}
+
+func (b *BoardView) ensureScrollOffs() {
+	needed := len(b.Board.Columns)
+	for len(b.scrollOffs) < needed {
+		b.scrollOffs = append(b.scrollOffs, 0)
+	}
+}
+
+func (b *BoardView) adjustScroll() {
+	b.ensureScrollOffs()
+	if b.ColCursor >= len(b.scrollOffs) {
+		return
+	}
+	maxVis := b.maxVisibleCards()
+	off := b.scrollOffs[b.ColCursor]
+	// cursor above visible area
+	if b.RowCursor < off {
+		b.scrollOffs[b.ColCursor] = b.RowCursor
+	}
+	// cursor below visible area
+	if b.RowCursor >= off+maxVis {
+		b.scrollOffs[b.ColCursor] = b.RowCursor - maxVis + 1
+	}
+}
+
 func (b *BoardView) clampRow() {
 	col := b.Board.Columns[b.ColCursor]
 	if b.RowCursor >= len(col.Cards) {
 		b.RowCursor = max(0, len(col.Cards)-1)
 	}
+	b.adjustScroll()
 }
 
 func (b *BoardView) Render() string {
@@ -136,21 +174,32 @@ func (b *BoardView) Render() string {
 		if cardInner < 8 {
 			cardInner = 8
 		}
-		cardHeight := 3 // lines per card: id, title, badges (fixed via Height(3))
-		cardTotal := cardHeight + 2 // +2 for card border
-		usedHeight := 3 // header(1) + margin(1) + potential "+more" line(1)
-		maxCards := (b.Height - usedHeight) / cardTotal
-		if maxCards < 1 {
-			maxCards = 1
+		maxCards := b.maxVisibleCards()
+		b.ensureScrollOffs()
+		scrollOff := 0
+		if i < len(b.scrollOffs) {
+			scrollOff = b.scrollOffs[i]
 		}
-		for j, card := range col.Cards {
-			if j >= maxCards {
-				remaining := len(col.Cards) - maxCards
-				cardLines = append(cardLines, HelpStyle.Render(fmt.Sprintf("  +%d more", remaining)))
-				break
-			}
-			rendered := renderCard(card, cardWidth, cardInner, i == b.ColCursor && j == b.RowCursor)
+
+		// Show scroll-up indicator
+		if scrollOff > 0 {
+			cardLines = append(cardLines, HelpStyle.Render(fmt.Sprintf("  ↑ %d more", scrollOff)))
+			maxCards-- // one slot used by indicator
+		}
+
+		endIdx := scrollOff + maxCards
+		if endIdx > len(col.Cards) {
+			endIdx = len(col.Cards)
+		}
+		for j := scrollOff; j < endIdx; j++ {
+			rendered := renderCard(col.Cards[j], cardWidth, cardInner, i == b.ColCursor && j == b.RowCursor)
 			cardLines = append(cardLines, rendered)
+		}
+
+		// Show scroll-down indicator
+		if endIdx < len(col.Cards) {
+			remaining := len(col.Cards) - endIdx
+			cardLines = append(cardLines, HelpStyle.Render(fmt.Sprintf("  ↓ %d more", remaining)))
 		}
 
 		body := strings.Join(append([]string{header}, cardLines...), "\n")
