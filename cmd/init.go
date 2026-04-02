@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -23,15 +24,63 @@ func NewInitCmd() *cobra.Command {
 
 			scanner := bufio.NewScanner(os.Stdin)
 
-			vault := prompt(scanner, "Obsidian vault path", "")
-			path := prompt(scanner, "Folder path within vault (relative)", "")
-			statusField := prompt(scanner, "Frontmatter field for status", "status")
-			idField := prompt(scanner, "Frontmatter field for ID (leave empty to use filename)", "")
-			titleField := prompt(scanner, "Frontmatter field for title (leave empty to use filename)", "")
-			priorityField := prompt(scanner, "Frontmatter field for priority (optional)", "")
-			typeField := prompt(scanner, "Frontmatter field for type (optional)", "")
+			fmt.Println("🗂  kbn init — 칸반 보드 설정을 생성합니다.")
+			fmt.Println()
 
-			hiddenInput := prompt(scanner, "Statuses to hide (comma-separated, e.g. Closed,Archived)", "")
+			// Vault path
+			fmt.Println("  Obsidian vault의 루트 경로를 입력하세요.")
+			fmt.Println("  예: /Users/you/Documents/MyVault")
+			home, _ := os.UserHomeDir()
+			defaultVault := filepath.Join(home, "Documents")
+			vault := prompt(scanner, "Vault path", defaultVault)
+
+			// Folder path
+			fmt.Println()
+			fmt.Println("  Vault 안에서 칸반 카드(md 파일)가 있는 폴더 경로.")
+			fmt.Println("  vault 루트에 바로 있으면 비워두세요.")
+			fmt.Println("  예: 프로젝트/MyApp")
+			path := prompt(scanner, "Folder path", "")
+
+			// Status field
+			fmt.Println()
+			fmt.Println("  마크다운 frontmatter에서 상태를 나타내는 필드명.")
+			fmt.Println("  예: status: In Progress → 'status'")
+			statusField := prompt(scanner, "Status field", "status")
+
+			// ID field
+			fmt.Println()
+			fmt.Println("  카드 ID로 사용할 frontmatter 필드.")
+			fmt.Println("  비워두면 파일명을 ID로 사용합니다.")
+			fmt.Println("  예: ticket_id: UL-001 → 'ticket_id'")
+			idField := prompt(scanner, "ID field", "")
+
+			// Title field
+			fmt.Println()
+			fmt.Println("  카드 제목으로 사용할 frontmatter 필드.")
+			fmt.Println("  비워두면 파일명을 제목으로 사용합니다.")
+			fmt.Println("  예: title: Widget 개발 → 'title'")
+			titleField := prompt(scanner, "Title field", "")
+
+			// Priority field
+			fmt.Println()
+			fmt.Println("  우선순위 필드. 카드에 뱃지로 표시됩니다.")
+			fmt.Println("  없으면 비워두세요.")
+			fmt.Println("  예: priority: High → 'priority'")
+			priorityField := prompt(scanner, "Priority field", "priority")
+
+			// Type field
+			fmt.Println()
+			fmt.Println("  타입 필드. 카드에 뱃지로 표시됩니다.")
+			fmt.Println("  없으면 비워두세요.")
+			fmt.Println("  예: type: Feature → 'type'")
+			typeField := prompt(scanner, "Type field", "type")
+
+			// Hidden statuses
+			fmt.Println()
+			fmt.Println("  기본으로 숨길 상태. kbn --all 로 다시 볼 수 있습니다.")
+			fmt.Println("  여러 개는 쉼표로 구분. 없으면 비워두세요.")
+			fmt.Println("  예: Closed,Archived")
+			hiddenInput := prompt(scanner, "Hidden statuses", "Closed")
 			var hidden []string
 			if hiddenInput != "" {
 				for _, s := range strings.Split(hiddenInput, ",") {
@@ -42,7 +91,12 @@ func NewInitCmd() *cobra.Command {
 				}
 			}
 
-			orderInput := prompt(scanner, "Column order (comma-separated, e.g. TODO,In Progress,Done)", "")
+			// Column order
+			fmt.Println()
+			fmt.Println("  칼럼 표시 순서. 지정하지 않으면 카드 수 순으로 정렬됩니다.")
+			fmt.Println("  여러 개는 쉼표로 구분. 없으면 비워두세요.")
+			fmt.Println("  예: TODO,In Progress,Done")
+			orderInput := prompt(scanner, "Column order", "")
 			var order []string
 			if orderInput != "" {
 				for _, s := range strings.Split(orderInput, ",") {
@@ -51,6 +105,15 @@ func NewInitCmd() *cobra.Command {
 						order = append(order, s)
 					}
 				}
+			}
+
+			// Preview layout
+			fmt.Println()
+			fmt.Println("  미리보기 패널 위치.")
+			fmt.Println("  right: 오른쪽 칼럼 / bottom: 아래쪽 분할")
+			previewLayout := prompt(scanner, "Preview layout", "bottom")
+			if previewLayout != "right" && previewLayout != "bottom" {
+				previewLayout = "bottom"
 			}
 
 			cfg := config.Config{
@@ -66,6 +129,7 @@ func NewInitCmd() *cobra.Command {
 				},
 				HiddenStatuses: hidden,
 				ColumnOrder:    order,
+				PreviewLayout:  previewLayout,
 			}
 
 			data, err := yaml.Marshal(&cfg)
@@ -86,9 +150,9 @@ func NewInitCmd() *cobra.Command {
 
 func prompt(scanner *bufio.Scanner, label string, defaultVal string) string {
 	if defaultVal != "" {
-		fmt.Printf("%s [%s]: ", label, defaultVal)
+		fmt.Printf("  → %s [%s]: ", label, defaultVal)
 	} else {
-		fmt.Printf("%s: ", label)
+		fmt.Printf("  → %s: ", label)
 	}
 
 	scanner.Scan()
