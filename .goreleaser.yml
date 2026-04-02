@@ -18,7 +18,8 @@ archives:
   - format: tar.gz
 
 brews:
-  - repository:
+  - name: kbn-cli
+    repository:
       owner: anyjava
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
