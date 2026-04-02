@@ -29,7 +29,7 @@ brew install kbn-cli
 Or build from source:
 
 ```bash
-go install github.com/anyjava/kbn@latest
+go install github.com/anyjava/kbn-cli@latest
 ```
 
 ## Quick Start
