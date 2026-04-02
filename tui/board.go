@@ -127,19 +127,23 @@ func (b *BoardView) adjustScroll() {
 	// cursor above visible area
 	if b.RowCursor < off {
 		b.scrollOffs[b.ColCursor] = b.RowCursor
-		off = b.scrollOffs[b.ColCursor]
-	}
-
-	// When scrolled down, ↑ indicator takes 1 card slot
-	visibleSlots := maxVis
-	if off > 0 {
-		visibleSlots--
+		return
 	}
 
 	// cursor below visible area
-	if b.RowCursor >= off+visibleSlots {
-		b.scrollOffs[b.ColCursor] = b.RowCursor - visibleSlots + 1
+	// After scrolling, ↑ indicator will appear if off > 0, taking 1 slot.
+	// We need to account for this BEFORE deciding the new offset.
+	for {
+		visibleSlots := maxVis
+		if off > 0 {
+			visibleSlots--
+		}
+		if b.RowCursor < off+visibleSlots {
+			break // cursor is visible
+		}
+		off++
 	}
+	b.scrollOffs[b.ColCursor] = off
 }
 
 func (b *BoardView) clampRow() {
