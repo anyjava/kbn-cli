@@ -21,7 +21,7 @@ brews:
   - repository:
       owner: anyjava
       name: homebrew-tap
-    homepage: https://github.com/anyjava/kbn
+    homepage: https://github.com/anyjava/kbn-cli
     description: "Obsidian vault kanban board TUI viewer"
     license: "MIT"
     install: |
