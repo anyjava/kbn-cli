@@ -16,7 +16,9 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-type reloadMsg struct{}
+type boardLoadedMsg struct {
+	board model.Board
+}
 
 type App struct {
 	board         BoardView
@@ -46,22 +48,31 @@ func NewApp(cfg *config.Config, showAll bool) App {
 }
 
 func (a App) Init() tea.Cmd {
-	return tea.Batch(a.loadCards(), a.watchFiles())
+	return tea.Batch(a.loadCardsAsync(), a.watchFiles())
 }
 
-func (a App) loadCards() tea.Cmd {
+func (a App) loadCardsAsync() tea.Cmd {
+	cfg := a.cfg
+	showAll := a.showAll
 	return func() tea.Msg {
-		return reloadMsg{}
+		cards, _ := parser.ParseCards(cfg.FullPath(), cfg.Glob, cfg.Fields)
+		if !showAll {
+			cards = model.FilterCards(cards, cfg.HiddenStatuses)
+		}
+		board := model.NewBoard(cards, cfg.ColumnOrder)
+		return boardLoadedMsg{board: board}
 	}
 }
 
 func (a App) watchFiles() tea.Cmd {
+	cfg := a.cfg
+	showAll := a.showAll
 	return func() tea.Msg {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
 			return nil
 		}
-		dir := a.cfg.FullPath()
+		dir := cfg.FullPath()
 		watcher.Add(dir)
 
 		for {
@@ -69,7 +80,12 @@ func (a App) watchFiles() tea.Cmd {
 			case event := <-watcher.Events:
 				if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) {
 					if strings.HasSuffix(event.Name, ".md") {
-						return reloadMsg{}
+						cards, _ := parser.ParseCards(cfg.FullPath(), cfg.Glob, cfg.Fields)
+						if !showAll {
+							cards = model.FilterCards(cards, cfg.HiddenStatuses)
+						}
+						board := model.NewBoard(cards, cfg.ColumnOrder)
+						return boardLoadedMsg{board: board}
 					}
 				}
 			case <-watcher.Errors:
@@ -88,8 +104,13 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.updatePreview()
 		return a, nil
 
-	case reloadMsg:
-		a.reload()
+	case boardLoadedMsg:
+		a.fullBoard = msg.board
+		a.board.Board = msg.board
+		a.board.clampRow()
+		a.preview.filePath = ""
+		a.relayout()
+		a.updatePreview()
 		a.loading = false
 		return a, a.watchFiles()
 
@@ -161,7 +182,8 @@ func (a App) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		a.searchText = ""
 
 	case "r":
-		a.reload()
+		a.loading = true
+		return a, a.loadCardsAsync()
 
 	case "?":
 		a.showHelp = !a.showHelp
@@ -271,19 +293,6 @@ func (a *App) relayout() {
 		a.preview.Width = previewWidth
 		a.preview.Height = boardHeight
 	}
-}
-
-func (a *App) reload() {
-	cards, _ := parser.ParseCards(a.cfg.FullPath(), a.cfg.Glob, a.cfg.Fields)
-	if !a.showAll {
-		cards = model.FilterCards(cards, a.cfg.HiddenStatuses)
-	}
-	board := model.NewBoard(cards, a.cfg.ColumnOrder)
-	a.fullBoard = board
-	a.board.Board = board
-	a.board.clampRow()
-	a.preview.filePath = "" // force preview reload
-	a.updatePreview()
 }
 
 func (a *App) updatePreview() {
