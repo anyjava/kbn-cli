@@ -24,6 +24,7 @@ type App struct {
 	showHelp      bool
 	searching     bool
 	searchText    string
+	loading       bool
 	fullBoard     model.Board // unfiltered board for search reset
 	columnOrder   []string
 	previewLayout string // "right" or "bottom"
@@ -33,23 +34,25 @@ type App struct {
 	height        int
 }
 
-func NewApp(board model.Board, cfg *config.Config, showAll bool) App {
-	app := App{
-		board: BoardView{
-			Board: board,
-		},
+func NewApp(cfg *config.Config, showAll bool) App {
+	return App{
 		preview:       PreviewPanel{Visible: true},
-		fullBoard:     board,
+		loading:       true,
 		columnOrder:   cfg.ColumnOrder,
 		previewLayout: cfg.PreviewLayout,
 		cfg:           cfg,
 		showAll:       showAll,
 	}
-	return app
 }
 
 func (a App) Init() tea.Cmd {
-	return a.watchFiles()
+	return tea.Batch(a.loadCards(), a.watchFiles())
+}
+
+func (a App) loadCards() tea.Cmd {
+	return func() tea.Msg {
+		return reloadMsg{}
+	}
 }
 
 func (a App) watchFiles() tea.Cmd {
@@ -87,6 +90,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case reloadMsg:
 		a.reload()
+		a.loading = false
 		return a, a.watchFiles()
 
 	case tea.MouseMsg:
@@ -300,8 +304,8 @@ func (a *App) openEditor(path string) tea.Cmd {
 }
 
 func (a App) View() string {
-	if a.width == 0 {
-		return "Loading..."
+	if a.width == 0 || a.loading {
+		return "  Loading..."
 	}
 
 	if a.showHelp {
