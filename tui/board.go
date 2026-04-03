@@ -148,6 +148,14 @@ func (b *BoardView) adjustScroll() {
 }
 
 func (b *BoardView) clampRow() {
+	if len(b.Board.Columns) == 0 {
+		b.ColCursor = 0
+		b.RowCursor = 0
+		return
+	}
+	if b.ColCursor >= len(b.Board.Columns) {
+		b.ColCursor = len(b.Board.Columns) - 1
+	}
 	col := b.Board.Columns[b.ColCursor]
 	if b.RowCursor >= len(col.Cards) {
 		b.RowCursor = max(0, len(col.Cards)-1)
