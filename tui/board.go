@@ -217,6 +217,13 @@ func (b *BoardView) Render() string {
 
 		body := strings.Join(append([]string{header}, cardLines...), "\n")
 
+		// Clip body to b.Height lines to prevent column overflow
+		bodyLines := strings.Split(body, "\n")
+		if len(bodyLines) > b.Height {
+			bodyLines = bodyLines[:b.Height]
+			body = strings.Join(bodyLines, "\n")
+		}
+
 		var colRendered string
 		if i == b.ColCursor {
 			colRendered = ActiveColumnStyle.Width(colWidth).Height(b.Height).Render(body)
