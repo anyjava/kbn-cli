@@ -11,7 +11,7 @@ hidden_statuses:
   - "Closed"
 preview_layout: "bottom"  # "right" or "bottom"
 column_order:
-  - "TODO"
+  - "Todo"
   - "Planned"
   - "In Progress"
   - "Done"

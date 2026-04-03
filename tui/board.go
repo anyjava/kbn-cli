@@ -92,11 +92,12 @@ func (b *BoardView) ColWidth() int {
 	if len(b.Board.Columns) == 0 {
 		return 0
 	}
-	w := b.Width / len(b.Board.Columns)
-	if w < 15 {
-		w = 15
+	borderW := 2
+	w := (b.Width - borderW*len(b.Board.Columns)) / len(b.Board.Columns)
+	if w < 12 {
+		w = 12
 	}
-	return w
+	return w + borderW // total rendered width per column for mouse hit testing
 }
 
 func (b *BoardView) maxVisibleCards() int {
@@ -160,11 +161,12 @@ func (b *BoardView) Render() string {
 	}
 
 	colCount := len(b.Board.Columns)
-	baseColWidth := b.Width / colCount
-	if baseColWidth < 15 {
-		baseColWidth = 15
+	borderW := 2 // left + right border chars
+	baseColWidth := (b.Width - borderW*colCount) / colCount
+	if baseColWidth < 12 {
+		baseColWidth = 12
 	}
-	remainder := b.Width - baseColWidth*colCount
+	remainder := b.Width - (baseColWidth+borderW)*colCount
 
 	var columns []string
 	for i, col := range b.Board.Columns {
@@ -173,7 +175,7 @@ func (b *BoardView) Render() string {
 		if i == colCount-1 {
 			colWidth += remainder
 		}
-		innerWidth := colWidth - 4 // border + padding
+		innerWidth := colWidth - 2 // padding for card border
 
 		// Header
 		headerText := fmt.Sprintf("%s (%d)", col.Name, len(col.Cards))
