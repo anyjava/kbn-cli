@@ -160,14 +160,21 @@ func (b *BoardView) Render() string {
 	}
 
 	colCount := len(b.Board.Columns)
-	colWidth := b.Width / colCount
-	if colWidth < 15 {
-		colWidth = 15
+	baseColWidth := b.Width / colCount
+	if baseColWidth < 15 {
+		baseColWidth = 15
 	}
-	innerWidth := colWidth - 4 // border + padding
+	remainder := b.Width - baseColWidth*colCount
 
 	var columns []string
 	for i, col := range b.Board.Columns {
+		// Last column gets the remainder to fill full width
+		colWidth := baseColWidth
+		if i == colCount-1 {
+			colWidth += remainder
+		}
+		innerWidth := colWidth - 4 // border + padding
+
 		// Header
 		headerText := fmt.Sprintf("%s (%d)", col.Name, len(col.Cards))
 		if len(headerText) > innerWidth {
